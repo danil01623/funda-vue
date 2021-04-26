@@ -1,6 +1,7 @@
 <template>
     <div class="listing-container">
-        <div class="row" v-if="results.length">
+        <p v-if="isLoading">Is loading.... </p>
+        <div class="row" v-if="results.length && !isLoading">
             <div class="column">
                 <image-slider
                     :main-foto="results[0].HoofdFotoSecure"
@@ -13,6 +14,9 @@
                     :property-data="results[0]"
                 ></property-information>
             </div>
+        </div>
+        <div v-else-if="!isLoading && error && (!results || results.length === 0)">
+            <p>{{ error }}</p>
         </div>
     </div>
 </template>
@@ -33,20 +37,29 @@ export default {
     data() {
         return {
             results: [],
+            error: null,
+            isLoading: '',
             windowWidth: window.innerWidth
         }
     },
     methods: {
         fetchData() {
+            this.isLoading = true
+            this.error = null
             // Fetching data
             // Using partnerapi.funda.nl was getting Cors error. vue.config.js file created to use proxy to avoid Cors error.
             fetch('http://localhost:8080/feeds/Aanbod.svc/json/detail/ac1b0b1572524640a0ecc54de453ea9f./koop/6289a7bb-a1a8-40d5-bed1-bff3a5f62ee6./')
             .then((response) => {
                 if(response.ok) {
+                    this.isLoading = false
                     return response.json()
                 }
             }).then((data) => {
                 this.results.push(data)
+            })
+            .catch((error) => {
+                this.isLoading = false
+                this.error = error
             })
         }
     },
